@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Vòng Quay May Mắn</title>
+    <style>
+        body {
+            background: linear-gradient(to bottom, #e0f7fa, #ffffff);
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        #canvas {
+            margin: 0 auto;
+            display: block;
+        }
+        #spin {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: orange;
+            border: none;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        #winner {
+            margin-top: 30px;
+            font-size: 30px;
+            color: green;
+            font-weight: bold;
+        }
+        #history {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Vòng Quay May Mắn 🎯</h1>
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <br>
+    <button id="spin">QUAY!</button>
+    <div id="winner"></div>
+    <div id="history"><h3>Lịch sử trúng thưởng:</h3><ul id="historyList"></ul></div>
+
+    <audio id="sound" src="fanfare.mp3" preload="auto"></audio>
+
+    <script>
+        const names = ["1 - A T\u00fa", "2 - Ch\u1ecb Loan", "3 - Anh S\u01a1n", "4 - Anh L\u1ee3i", "5 - Anh \u0110\u1ea1t", "6 - Anh \u0110\u00e0n", "7 - Anh Chi\u1ebfn", "8 - Ch\u1ecb Ph\u01b0\u1ee3ng", "9 - Anh Ph\u00fac", "10 - Anh Huy", "11 - Anh D\u0169ng", "12 - Anh Phi\u1ec7t", "13 - Anh T\u00f9ng", "14 - Anh Phong", "15 - Anh Th\u00e1i", "16 - Anh H\u00e0 Mai T\u00f9ng", "17 - Anh Tu\u1ea5n", "18 - Anh M\u01b0\u1eddi", "19 - Anh Th\u00e1i", "20 - Anh Ph\u01b0\u01a1ng", "21 - Anh Ngoan", "22 - Anh To\u00e0n", "23 - Anh Nam", "24 - Anh H\u1ea3i", "25 - Anh Chi\u1ebfn", "26 - Anh Th\u1eafng", "27 - B\u1ea3o Tr\u00e2n", "28 - Ng\u1ecdc Thi", "29 - Anh Sinh", "30 - Anh Trung", "31 - Anh Thi\u00ean An", "32 - Anh Tu\u1ea5n", "33 - Anh Ph\u00fac", "34 - Ch\u1ecb Hi\u1ec1n", "35 - Anh Tu\u1ea5n", "36 - Anh Di\u1ec7p L\u00e2m", "37 - Anh B\u00f9i S\u01a1n Th\u1ea1ch", "38 - Anh Th\u1ea1t", "39 - Anh NGUY\u1ec4N MINH \u0110A", "40 - Anh B\u00f9i V\u0103n Tin", "41 - Anh H\u00f9ng", "42 - Anh H\u00f9ng", "43 - Anh Danh"];
+        const winnerInfo = {"1": {"ten": "A T\u00fa", "don_vi": "Newgene corp"}, "2": {"ten": "Ch\u1ecb Loan", "don_vi": "C\u00f4ng Ty C\u1ed5 Ph\u1ea7n C\u00f4ng Ngh\u1ec7 Nessar Vi\u1ec7t Nam"}, "3": {"ten": "Anh S\u01a1n", "don_vi": "C\u00d4NG TY C\u1ed4 PH\u1ea6N C\u00d4NG NGH\u1ec6 CSD GROUP"}, "4": {"ten": "Anh L\u1ee3i", "don_vi": "C\u00d4NG TY C\u1ed4 PH\u1ea6N C\u00d4NG NGH\u1ec6 CSD GROUP"}, "5": {"ten": "Anh \u0110\u1ea1t", "don_vi": "Ph\u1ea7n M\u1ec1m Vina"}, "6": {"ten": "Anh \u0110\u00e0n", "don_vi": "C\u00d4NG TY C\u1ed4 PH\u1ea6N GREENFEED VI\u1ec6T NAM"}, "7": {"ten": "Anh Chi\u1ebfn", "don_vi": "C\u00d4NG TY TNHH LINFOX  LOGISTICS VI\u1ec6T NAM\nC\u00f4ng ty TNHH Linfox Logistics Vi\u1ec7t Nam"}, "8": {"ten": "Ch\u1ecb Ph\u01b0\u1ee3ng", "don_vi": "Cty TNHH Th\u01b0\u01a1ng m\u1ea1i d\u1ecbch v\u1ee5 HTE-Greeny"}, "9": {"ten": "Anh Ph\u00fac", "don_vi": "C\u00f4ng Ty CP VSA GROUP"}, "10": {"ten": "Anh Huy", "don_vi": "C\u00f4ng Ty CP VSA GROUP"}, "11": {"ten": "Anh D\u0169ng", "don_vi": "C\u00f4ng ty C\u1ed5 Ph\u1ea7n S\u1ea3n Xu\u1ea5t - X\u00e2y D\u1ef1ng v\u00e0 Th\u01b0\u01a1ng M\u1ea1i \u0110\u00f4ng Nam \u00c1"}, "12": {"ten": "Anh Phi\u1ec7t", "don_vi": "C\u00f4ng Ty TNHH C\u00f4ng Ngh\u1ec7 \u0110\u1ed3ng Gia"}, "13": {"ten": "Anh T\u00f9ng", "don_vi": "C\u00f4ng Ty TNHH C\u00f4ng Ngh\u1ec7 \u0110\u1ed3ng Gia"}, "14": {"ten": "Anh Phong", "don_vi": "C\u00f4ng Ty Vi\u1ec5n Th\u00f4ng Th\u00e0nh Ph\u1ed1"}, "15": {"ten": "Anh Th\u00e1i", "don_vi": "HTT System"}, "16": {"ten": "Anh H\u00e0 Mai T\u00f9ng", "don_vi": "HTT System"}, "17": {"ten": "Anh Tu\u1ea5n", "don_vi": "C\u00f4ng ty TNHH Th\u01b0\u01a1ng M\u1ea1i D\u1ecbch V\u1ee5 ACT4"}, "18": {"ten": "Anh M\u01b0\u1eddi", "don_vi": "C\u00f4ng Ty C\u1ed5 Ph\u1ea7n Vi\u1ec5n Th\u00f4ng \u00c1 Ch\u00e2u"}, "19": {"ten": "Anh Th\u00e1i", "don_vi": "C\u00f4ng Ty TNHH T\u00edch H\u1ee3p C\u00f4ng Ngh\u1ec7 Quang Tu\u1ea5n"}, "20": {"ten": "Anh Ph\u01b0\u01a1ng", "don_vi": "C\u00f4ng ty TNHH C\u00f4ng Ngh\u1ec7 GSP"}, "21": {"ten": "Anh Ngoan", "don_vi": "C\u00f4ng Ty TNHH TM & DV C\u00f4ng Ngh\u1ec7 Queue"}, "22": {"ten": "Anh To\u00e0n", "don_vi": "C\u00f4ng Ty TNHH \u0110\u1ea7u T\u01b0 Ph\u00e1t Tri\u1ec5n Vi\u1ec5n Th\u00f4ng T\u00e2y Th\u00e0nh Ph\u1ed1"}, "23": {"ten": "Anh Nam", "don_vi": "C\u00d4NG TY TNHH TMDV N\u00c9T S\u00c0I G\u00d2N"}, "24": {"ten": "Anh H\u1ea3i", "don_vi": "C\u00d4NG TY TNHH C\u00d4NG NGH\u1ec6 HKEY"}, "25": {"ten": "Anh Chi\u1ebfn", "don_vi": "C\u00f4ng ty TNHH ph\u00e1t tri\u1ec3n c\u00f4ng ngh\u1ec7 Linaco Mi\u1ec1n Nam"}, "26": {"ten": "Anh Th\u1eafng", "don_vi": "C\u00d4NG TY TNHH A.N.F.A VI\u1ec6T NAM"}, "27": {"ten": "B\u1ea3o Tr\u00e2n", "don_vi": "C\u00d4NG TY TNHH A.N.F.A VI\u1ec6T NAM"}, "28": {"ten": "Ng\u1ecdc Thi", "don_vi": "C\u00d4NG TY TNHH A.N.F.A VI\u1ec6T NAM"}, "29": {"ten": "Anh Sinh", "don_vi": "Kioxia"}, "30": {"ten": "Anh Trung", "don_vi": "C\u00d4NG TY TNHH \u0110\u1ea4T M\u1edaI VI\u1ec6T NH\u1eacT LONG AN"}, "31": {"ten": "Anh Thi\u00ean An", "don_vi": "C\u00d4NG TY TNHH TMDV 4UTECH"}, "32": {"ten": "Anh Tu\u1ea5n", "don_vi": "C\u00f4ng Ty C\u1ed5 Ph\u1ea7n Th\u01b0\u01a1ng M\u1ea1i IME"}, "33": {"ten": "Anh Ph\u00fac", "don_vi": "C\u00f4ng Ty C\u1ed5 Ph\u1ea7n P.A.T GROUT"}, "34": {"ten": "Ch\u1ecb Hi\u1ec1n", "don_vi": "Gi\u1ea3i Ph\u00e1p Vi\u1ec7t"}, "35": {"ten": "Anh Tu\u1ea5n", "don_vi": "C\u00f4ng Ty Tnhh Tcis Inspection Viet Nam"}, "36": {"ten": "Anh Di\u1ec7p L\u00e2m", "don_vi": "C\u00d4NG TY TNHH D\u1ecaCH V\u1ee4 TH\u01af\u01a0NG M\u1ea0I L\u00c2M GIA PH\u00daC"}, "37": {"ten": "Anh B\u00f9i S\u01a1n Th\u1ea1ch", "don_vi": "C\u00f4ng Ty E Link Gate"}, "38": {"ten": "Anh Th\u1ea1t", "don_vi": "C\u00f4ng ty L\u00e2m H\u00e0 Telecom"}, "39": {"ten": "Anh NGUY\u1ec4N MINH \u0110A", "don_vi": "C\u00d4NG TY TNHH THI\u1ebeT B\u1eca NGHE NH\u00ccN TR\u01af\u1edcNG TH\u1ecaNH"}, "40": {"ten": "Anh B\u00f9i V\u0103n Tin", "don_vi": "C\u00d4NG TY TNHH PH\u00c1T TRI\u1ec2N & \u0110\u1ea6U T\u01af C\u00d4NG NGH\u1ec6 FONET"}, "41": {"ten": "Anh H\u00f9ng", "don_vi": "C\u00f4ng ty Gia Tu\u1ea5n"}, "42": {"ten": "Anh H\u00f9ng", "don_vi": "C\u00f4ng ty Inovus"}, "43": {"ten": "Anh Danh", "don_vi": "C\u00f4ng Ty  Anh Ng\u1ecdc"}};
+        let canvas = document.getElementById("canvas");
+        let ctx = canvas.getContext("2d");
+        let startAngle = 0;
+        let arc = Math.PI / (names.length / 2);
+        let spinTimeout = null;
+        let spinAngleStart = 0;
+        let spinTime = 0;
+        let spinTimeTotal = 0;
+
+        function drawRouletteWheel() {
+            let outsideRadius = 200;
+            let textRadius = 160;
+            let insideRadius = 125;
+            ctx.clearRect(0,0,500,500);
+            ctx.strokeStyle = "orange";
+            ctx.lineWidth = 5;
+            ctx.font = '14px Arial';
+
+            for(let i = 0; i < names.length; i++) {
+                let angle = startAngle + i * arc;
+                ctx.fillStyle = i % 2 == 0 ? "#FFD700" : "#00BFFF";
+
+                ctx.beginPath();
+                ctx.arc(250, 250, outsideRadius, angle, angle + arc, false);
+                ctx.arc(250, 250, insideRadius, angle + arc, angle, true);
+                ctx.stroke();
+                ctx.fill();
+
+                ctx.save();
+                ctx.fillStyle = "black";
+                ctx.translate(250 + Math.cos(angle + arc / 2) * textRadius,
+                              250 + Math.sin(angle + arc / 2) * textRadius);
+                ctx.rotate(angle + arc / 2);
+                ctx.fillText(names[i], -ctx.measureText(names[i]).width / 2, 0);
+                ctx.restore();
+            }
+        }
+
+        function spin() {
+            spinAngleStart = Math.random() * 10 + 10;
+            spinTime = 0;
+            spinTimeTotal = Math.random() * 3000 + 4000;
+            rotateWheel();
+        }
+
+        function rotateWheel() {
+            spinTime += 30;
+            if(spinTime >= spinTimeTotal) {
+                stopRotateWheel();
+                return;
+            }
+            let spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
+            startAngle += (spinAngle * Math.PI / 180);
+            drawRouletteWheel();
+            spinTimeout = setTimeout(rotateWheel, 30);
+        }
+
+        function stopRotateWheel() {
+            clearTimeout(spinTimeout);
+            let degrees = startAngle * 180 / Math.PI + 90;
+            let arcd = arc * 180 / Math.PI;
+            let index = Math.floor((360 - (degrees % 360)) / arcd);
+            let label = names[index];
+            let stt = label.split(" - ")[0].trim();
+            let result = winnerInfo[stt];
+            let msg = "🎉 " + result.ten + " - " + result.don_vi;
+            document.getElementById("winner").innerText = msg;
+            document.getElementById("historyList").innerHTML += "<li>" + msg + "</li>";
+            document.getElementById("sound").play();
+        }
+
+        function easeOut(t, b, c, d) {
+            let ts = (t/=d)*t;
+            let tc = ts*t;
+            return b+c*(tc + -3*ts + 3*t);
+        }
+
+        document.getElementById("spin").addEventListener("click", spin);
+        drawRouletteWheel();
+    </script>
+</body>
+</html>
